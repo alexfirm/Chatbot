@@ -1,86 +1,83 @@
-import json
-import sys
-import os
+import json, sys, os 
 import subprocess as sp
 
-class PrimarioBot():
-    #Construtor da classe
-    # um construtor garante o uso de determinadas informações
+class Test():
     def __init__(self, name):
         try:
-            memoria = open(name + ".json", "r") # 'r' é read/ler
+            memory = open(name + '.json', 'r')
         except FileNotFoundError:
-            memoria = open(name + ".json", "w") # 'w' é write/escrever
-            memoria.write(
-                            "[['Primário'], {'oi': 'Oi! Qual é o seu nome?', 'tudo bem?': 'Tudo bem?', 'tchau': 'Tchau!'}]")
-            memoria.close()
-            memoria = open(name + ".json", "r")
+            memory = open(name + '.json', 'w')
+            memory.write('''[
+                            ["Primário", "Alex"],
+                            {
+                                "oi": "Olá! Qual seu nome?",
+                                "tchau": "Tchau! Tchau!",
+                                "tudo bem?": "Eu estou bem, agradeço! E você?"
+                            }
+                        ]''')
+            memory.close()
+            memory = open(name + '.json', 'r')
         
         self.name = name
-        self.conhecido, self.frases = json.load(memoria)
-        memoria.close()
-        self.historico = [None]
+        self.known, self.phrases = json.load(memory)
+        memory.close()
+        self.historic = [None]
 
-    def Ouvir(self, frase=None):
-        if frase == None:
-            frase = input('Digite aqui: ') 
-        frase = str(frase)
-        return frase
+    def listen(self, phrase=None):
+        return phrase.lower()
+
+    def think(self, phrase):
+        if phrase in self.phrases:
+            return self.phrases[phrase]
+        if phrase == 'Aprende':
+            return 'O que você quer que eu aprenda?'
+        if phrase == 'Forms':
+            return "https://docs.google.com/forms/d/e/1FAIpQLSdmrdGbOZgiK6GyStj9HTBBXIji4AycF6o2ZDjsmG9udgSP2w/viewform"
         
-    def Pensar(self, frase):
-        if frase in self.frases[frase]:
-            return self.frases[frase]
-        if frase == "aprende":
-            return "O que você quer que eu aprenda?"
-        if frase == "jogar":
-            return "https://ncase.itch.io/wbwwb?fbclid=IwAR2YOC5VAXVba0YEiaWloHQw9hrJn0Uiwh54LIutzljyd2t1y7H8cDvcvHw"
-        
-        ultimaFrase = self.historico [-1]
-        if ultimaFrase == 'Oi! Qual é o seu nome?':
-            nome = self.pegaNome(frase)
-            resposta = self.respostaNome(nome)
-            return resposta 
-        if ultimaFrase == "O que você quer que eu aprenda?":
-            self.palavraChave = frase
-            self.frases[self.palavraChave]
+        # historic
+        lastPhrase = self.historic[-1]
+        if lastPhrase == 'Olá! Qual seu nome?':
+            name = self.getName(phrase)
+            response = self.answerName(name)
+            return response
+        if lastPhrase == 'O que você quer que eu aprenda?':
+            self.key = phrase
             return 'Digite o que eu devo responder:'
-        if ultimaFrase == 'Digite o que eu devo responder:':
-            resposta = frase
-            self.frases[self.palavraChave] = resposta
-            self.salvarMemoria()
-            return "Aprendido!"
-        
+        if lastPhrase == 'Digite o que eu devo responder:':
+            response = phrase
+            self.phrases[self.key] = response
+            self.saveMemory()
+            return 'Aprendido!'
         try:
-            resposta = str(eval(frase))
-            return resposta
-        except: 
-            pass 
-        return "Não entendi!"
-
-    def pegaNome(self, nome):
-        if "Meu nome é " in nome:
-            nome = nome[12:]
-        nome = nome.title()
-        return nome
-
-    def respostaNome(self, nome):
-        if nome in self.conhecido:
-            frase = 'Olá, '
+            response = str(eval(phrase))
+            return response
+        except:
+            pass
+        return 'Não entendi...'
+    def getName(self, name):
+        if 'Meu nome é ' in name:
+            name = name[12:]
+        name = name.title()
+        return name
+    def answerName(self, name):
+        if name in self.known:
+            if name != 'Severina':
+                phrase = 'Eaew, '
+            else:
+                phrase = 'E se somos Severinas iguais em tudo na vida, morreremos de morte igual, mesma morte severina.'
         else:
-            frase = "Prazer em conhecê-lo, "
-            self.conhecido.append(nome)
-            self.salvarMemoria()
-        return frase + nome + "!"
-
-    def salvarMemoria(self):
-        memoria = open(self.name + '.json', 'w')
-        json.dump([self.conhecido, self.frases], memoria)
-        memoria.close()
-
-    def Falar(self, frase):
-        if 'Executa ' in frase:
+            phrase = 'Muito prazer '
+            self.known.append(name)
+            self.saveMemory()
+        return phrase + name + '!'
+    def saveMemory(self):
+        memory = open(self.name+'.json', 'w')
+        json.dump([self.known, self.phrases], memory)
+        memory.close()
+    def speak(self, phrase):
+        if 'Executa ' in phrase:
             platform = sys.platform
-            command = frase.replace('Executa ', '')
+            command = phrase.replace('Executa ', '')
             if 'win' in platform:
                 os.startfile(command)
             if 'linux' in platform:
@@ -89,5 +86,5 @@ class PrimarioBot():
                 except FileNotFoundError:
                     sp.Popen(['xdg-open', command])
         else:
-            print(frase)
-        self.historico.append(frase)
+            print(phrase)
+        self.historic.append(phrase)
